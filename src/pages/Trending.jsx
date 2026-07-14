@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import clsx from "clsx";
 import { ClaimCard } from "../components/claims/ClaimCard";
 import { PulseSkeleton } from "../components/ui/PulseSkeleton";
 import { useTrendingClaims } from "../hooks/useTrendingClaims";
+import { useAuthSession } from "../hooks/useAuthSession";
+import { useProfile } from "../hooks/useProfile";
 import { sortByFastestRising, sortByMostReported } from "../data/seed";
 import { CATEGORIES } from "../lib/constants";
 
@@ -14,8 +16,20 @@ const SORTS = [
 
 export function Trending() {
   const { claims, loading, newlyArrivedIds } = useTrendingClaims();
+  const { session } = useAuthSession();
+  const profile = useProfile(session);
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("fastest");
+  const appliedDefault = useRef(false);
+
+  // Default the filter to the signed-in user's first preferred category on load, once —
+  // still fully overridable by the chips themselves.
+  useEffect(() => {
+    if (!appliedDefault.current && profile?.categories?.length) {
+      setCategory(profile.categories[0]);
+      appliedDefault.current = true;
+    }
+  }, [profile]);
 
   const list = useMemo(() => {
     const filtered = category === "All" ? claims : claims.filter((c) => c.category === category);

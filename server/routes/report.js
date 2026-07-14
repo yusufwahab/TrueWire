@@ -2,6 +2,7 @@ import { Router } from "express";
 import { supabaseAdmin, isSupabaseConfigured } from "../lib/supabaseAdmin.js";
 import { mapDbClaims } from "../lib/mapClaim.js";
 import { findBestMatch } from "../lib/matching.js";
+import { analyzeUnmatchedClaim } from "../lib/claude.js";
 import { CLAIMS } from "../../src/data/seed.js";
 
 export const reportRouter = Router();
@@ -26,12 +27,18 @@ reportRouter.post("/", async (req, res) => {
 
   const match = findBestMatch(content, pool);
   let saved = false;
+  let resolvedCategory = category;
+
+  if (!resolvedCategory && !match) {
+    const analysis = await analyzeUnmatchedClaim(content);
+    resolvedCategory = analysis?.suggestedCategory ?? null;
+  }
 
   if (isSupabaseConfigured) {
     const { error } = await supabaseAdmin.from("user_reports").insert({
       content,
       type,
-      category,
+      category: resolvedCategory,
       contact_email: contactEmail,
       matched_claim_id: match?.claim.id ?? null,
       status: "queued",

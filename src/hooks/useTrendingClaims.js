@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 import { CLAIMS } from "../data/seed";
@@ -6,7 +6,9 @@ import { CLAIMS } from "../data/seed";
 // Live trending feed: fetches from the API (which itself falls back to seed data when Supabase
 // isn't configured), then subscribes to Supabase realtime so new/changed claims refetch without
 // polling. Tracks which claim ids just arrived so the UI can flash them instead of popping them in.
-export function useTrendingClaims() {
+// `preferredCategories` (from a signed-in user's saved profile) boosts matching claims to the
+// front — nothing is hidden, it's a reorder, not a filter.
+export function useTrendingClaims(preferredCategories = []) {
   const [claims, setClaims] = useState(CLAIMS);
   const [loading, setLoading] = useState(true);
   const [newlyArrivedIds, setNewlyArrivedIds] = useState(new Set());
@@ -51,8 +53,14 @@ export function useTrendingClaims() {
 
   useEffect(() => {
     if (!isSupabaseConfigured) return undefined;
+    // Multiple components (TickerStrip, Home, Trending) each call this hook, and Supabase
+    // reuses a channel object when you ask for a name that's already registered — reusing a
+    // fixed name across instances (or across React StrictMode's dev double-mount) means a
+    // second `.on()` call lands on an already-subscribed channel, which Supabase rejects. A
+    // name that's unique per subscription sidesteps that entirely.
+    const channelName = `claims-changes-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel("claims-changes")
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "claims" }, () => {
         api.trendingClaims().then((data) => applyClaims(data?.claims)).catch(() => {});
       })
@@ -62,5 +70,14 @@ export function useTrendingClaims() {
     };
   }, []);
 
-  return { claims, loading, newlyArrivedIds };
+  const orderedClaims = useMemo(() => {
+    if (!preferredCategories?.length) return claims;
+    const preferred = new Set(preferredCategories);
+    const boosted = [];
+    const rest = [];
+    claims.forEach((c) => (preferred.has(c.category) ? boosted : rest).push(c));
+    return [...boosted, ...rest];
+  }, [claims, preferredCategories]);
+
+  return { claims: orderedClaims, loading, newlyArrivedIds };
 }

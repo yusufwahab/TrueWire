@@ -2,6 +2,7 @@ import { Router } from "express";
 import { supabaseAdmin, isSupabaseConfigured } from "../lib/supabaseAdmin.js";
 import { mapDbClaims } from "../lib/mapClaim.js";
 import { findBestMatch } from "../lib/matching.js";
+import { analyzeUnmatchedClaim } from "../lib/claude.js";
 import { CLAIMS } from "../../src/data/seed.js";
 
 export const verifyRouter = Router();
@@ -37,13 +38,16 @@ verifyRouter.post("/", async (req, res) => {
   }
 
   if (!match) {
+    const analysis = await analyzeUnmatchedClaim(text);
     return res.json({
       verdict: "unconfirmed",
       confidence: null,
       matchScore: 0,
       claim: null,
       explanation:
+        analysis?.explanation ||
         "We couldn't find a confident match for this in our fact-check archive yet. That doesn't mean it's false — it means we don't have enough evidence either way. It's been logged and queued for review.",
+      suggestedCategory: analysis?.suggestedCategory ?? null,
       sources: [],
     });
   }

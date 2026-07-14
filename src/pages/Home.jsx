@@ -8,6 +8,8 @@ import { PulseSkeleton } from "../components/ui/PulseSkeleton";
 import { Button } from "../components/ui/Button";
 import { ClaimCard } from "../components/claims/ClaimCard";
 import { useTrendingClaims } from "../hooks/useTrendingClaims";
+import { useAuthSession } from "../hooks/useAuthSession";
+import { useProfile } from "../hooks/useProfile";
 import { useEditorialImage } from "../hooks/useEditorialImage";
 import { PhotoCredit } from "../components/ui/PhotoCredit";
 import { sortByFastestRising } from "../data/seed";
@@ -37,7 +39,9 @@ const STEPS = [
 export function Home() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const { claims } = useTrendingClaims();
+  const { session } = useAuthSession();
+  const profile = useProfile(session);
+  const { claims } = useTrendingClaims(profile?.categories);
   const preview = sortByFastestRising(claims).slice(0, 4);
   const featuredImage = useEditorialImage("Lagos street phone");
 

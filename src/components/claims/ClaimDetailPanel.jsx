@@ -1,10 +1,11 @@
 import { ExternalLink } from "lucide-react";
 import { VerdictPill } from "../ui/VerdictPill";
 import { Sparkline } from "../ui/Sparkline";
-import { VERDICTS } from "../../lib/constants";
+import { NarrateButton } from "../ui/NarrateButton";
+import { VERDICTS, DEFAULT_VOICE } from "../../lib/constants";
 import { timeAgo } from "../../lib/format";
 
-export function ClaimDetailPanel({ claim }) {
+export function ClaimDetailPanel({ claim, voice = DEFAULT_VOICE }) {
   const verdict = VERDICTS[claim.verdict] || VERDICTS.unconfirmed;
 
   return (
@@ -20,7 +21,10 @@ export function ClaimDetailPanel({ claim }) {
       </div>
 
       <div className="rounded-xl border border-slate/15 bg-paper-raised p-5">
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate">Why we think this</p>
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate">Why we think this</p>
+          <NarrateButton text={claim.explanation} voice={voice} />
+        </div>
         <p className="text-base leading-relaxed text-ink/90">{claim.explanation}</p>
         <p className="mt-3 text-xs text-slate">{verdict.description}.</p>
       </div>

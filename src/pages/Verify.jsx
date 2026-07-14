@@ -5,8 +5,12 @@ import clsx from "clsx";
 import { Button } from "../components/ui/Button";
 import { PulseSkeleton } from "../components/ui/PulseSkeleton";
 import { VerdictPill } from "../components/ui/VerdictPill";
+import { NarrateButton } from "../components/ui/NarrateButton";
+import { useAuthSession } from "../hooks/useAuthSession";
+import { useProfile } from "../hooks/useProfile";
 import { api } from "../lib/api";
 import { CLAIMS } from "../data/seed";
+import { VOICE_BY_LANGUAGE, DEFAULT_VOICE } from "../lib/constants";
 
 const TABS = [
   { key: "text", label: "Paste text", icon: FileText },
@@ -26,6 +30,9 @@ export function Verify() {
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const intervalRef = useRef(null);
+  const { session } = useAuthSession();
+  const profile = useProfile(session);
+  const voice = VOICE_BY_LANGUAGE[profile?.language] || DEFAULT_VOICE;
 
   useEffect(() => {
     if (status !== "loading") {
@@ -146,7 +153,10 @@ export function Verify() {
             <VerdictPill verdict={result.verdict} confidence={result.confidence ?? undefined} size="lg" />
           </div>
           <div className="rounded-xl border border-slate/15 bg-paper-raised p-6">
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate">Why we think this</p>
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate">Why we think this</p>
+              <NarrateButton text={result.explanation} voice={voice} />
+            </div>
             <p className="text-base leading-relaxed text-ink/90">{result.explanation}</p>
           </div>
 

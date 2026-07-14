@@ -1,12 +1,16 @@
 import { Link } from "react-router-dom";
 import { useTrendingClaims } from "../../hooks/useTrendingClaims";
+import { useAuthSession } from "../../hooks/useAuthSession";
+import { useProfile } from "../../hooks/useProfile";
 import { sortByFastestRising } from "../../data/seed";
 import { VERDICTS } from "../../lib/constants";
 
 // The proactive-alert concept made visible everywhere: a thin auto-scrolling strip of the
 // fastest-trending claims, present on every page directly under the header.
 export function TickerStrip() {
-  const { claims } = useTrendingClaims();
+  const { session } = useAuthSession();
+  const profile = useProfile(session);
+  const { claims } = useTrendingClaims(profile?.categories);
   const top = sortByFastestRising(claims).slice(0, 8);
   if (!top.length) return null;
   const track = [...top, ...top];

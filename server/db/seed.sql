@@ -51,7 +51,8 @@ from (values
   ('kidnapping-spike-highway-video', 'PM News', 'contradicts')
 ) as v(claim_slug, source_name, stance)
 join claims c on c.slug = v.claim_slug
-join sources s on s.name = v.source_name;
+join sources s on s.name = v.source_name
+on conflict (claim_id, source_id) do nothing;
 
 -- A light spread of hourly report-count buckets per claim, for the sparkline.
 insert into claim_reports (claim_id, bucket_at, count)

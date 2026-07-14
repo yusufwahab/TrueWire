@@ -25,7 +25,8 @@ create table if not exists claim_sources (
   claim_id uuid not null references claims (id) on delete cascade,
   source_id uuid not null references sources (id) on delete cascade,
   article_url text,
-  stance text not null check (stance in ('corroborates', 'contradicts'))
+  stance text not null check (stance in ('corroborates', 'contradicts')),
+  unique (claim_id, source_id)
 );
 
 -- One row per time bucket, powers the sparkline / propagation summary.

@@ -3,14 +3,20 @@ import { useParams, Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { ClaimDetailPanel } from "../components/claims/ClaimDetailPanel";
 import { PulseSkeleton } from "../components/ui/PulseSkeleton";
+import { useAuthSession } from "../hooks/useAuthSession";
+import { useProfile } from "../hooks/useProfile";
 import { api } from "../lib/api";
 import { CLAIMS } from "../data/seed";
+import { VOICE_BY_LANGUAGE, DEFAULT_VOICE } from "../lib/constants";
 
 export function ClaimDetail() {
   const { slug } = useParams();
   const [claim, setClaim] = useState(() => CLAIMS.find((c) => c.slug === slug) ?? null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const { session } = useAuthSession();
+  const profile = useProfile(session);
+  const voice = VOICE_BY_LANGUAGE[profile?.language] || DEFAULT_VOICE;
 
   useEffect(() => {
     let cancelled = false;
@@ -49,7 +55,7 @@ export function ClaimDetail() {
       ) : notFound || !claim ? (
         <p className="text-sm text-slate">We couldn't find that claim.</p>
       ) : (
-        <ClaimDetailPanel claim={claim} />
+        <ClaimDetailPanel claim={claim} voice={voice} />
       )}
     </div>
   );

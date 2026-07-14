@@ -68,3 +68,15 @@ export const NEWS_SOURCES = [
 export const FACT_CHECK_PARTNERS = ["Dubawa", "FactCheckHub", "Africa Check", "CDD Fact-check"];
 
 export const WHATSAPP_REPORT_NUMBER = null; // set to a real number to go live, e.g. "+234 800 000 0000"
+
+// Picks a default YarnGPT voice persona from a signed-in user's saved language preference.
+// These are Nigerian-accented English voices, not literal Yoruba/Igbo/Hausa translations — the
+// app has no translated copy, so narration text stays English regardless of this choice.
+export const VOICE_BY_LANGUAGE = {
+  English: "Idera",
+  Pidgin: "Tayo",
+  Hausa: "Umar",
+  Yoruba: "Femi",
+  Igbo: "Nonso",
+};
+export const DEFAULT_VOICE = "Idera";

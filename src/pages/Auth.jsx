@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import { Button } from "../components/ui/Button";
@@ -10,13 +10,31 @@ const LANGUAGES = ["English", "Pidgin", "Hausa", "Yoruba", "Igbo"];
 export function Auth() {
   const navigate = useNavigate();
   const [mode, setMode] = useState("signin"); // signin | signup
-  const [step, setStep] = useState("form"); // form | onboarding-categories | onboarding-language | done
+  const [step, setStep] = useState("form"); // form | check-email | onboarding-categories | onboarding-language | done
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [language, setLanguage] = useState("English");
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Single source of truth for post-sign-in routing, covering both email and Google OAuth
+  // (the OAuth redirect back to this page fires SIGNED_IN here rather than resolving from a
+  // direct call, which is what the old code missed). A missing profiles row means onboarding
+  // hasn't been completed yet, regardless of how the user signed in.
+  useEffect(() => {
+    if (!isSupabaseConfigured) return undefined;
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event !== "SIGNED_IN" || !session?.user) return;
+      const { data: profile } = await supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle();
+      if (profile) {
+        navigate("/trending");
+      } else {
+        setStep("onboarding-categories");
+      }
+    });
+    return () => listener.subscription.unsubscribe();
+  }, [navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -27,13 +45,15 @@ export function Auth() {
     setStatus("loading");
     setErrorMsg("");
     try {
-      const { error } =
+      const { data, error } =
         mode === "signup"
           ? await supabase.auth.signUp({ email, password })
           : await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      if (mode === "signup") setStep("onboarding-categories");
-      else navigate("/");
+      // If the project requires email confirmation, signUp succeeds but returns no session —
+      // nothing will trigger the listener above until the user confirms, so say so plainly
+      // instead of leaving them on a form that looks like it did nothing.
+      if (mode === "signup" && !data.session) setStep("check-email");
     } catch (err) {
       setErrorMsg(err.message);
     } finally {
@@ -140,6 +160,26 @@ export function Auth() {
               </button>
             </p>
           </>
+        )}
+
+        {step === "check-email" && (
+          <div className="text-center">
+            <h1 className="font-display text-2xl font-semibold text-ink">Check your email</h1>
+            <p className="mt-2 text-sm text-slate">
+              We've sent a confirmation link to <span className="font-medium text-ink">{email}</span>. Confirm your
+              address, then come back and sign in.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setStep("form");
+                setMode("signin");
+              }}
+              className="mt-6 w-full"
+            >
+              Back to sign in
+            </Button>
+          </div>
         )}
 
         {step === "onboarding-categories" && (

@@ -7,7 +7,7 @@ import { Button } from "../ui/Button";
 // Slide-in panel from the right, offset below the header/ticker so the live ticker stays
 // visible while the nav is open. Always mounted with a CSS transform transition (rather than a
 // JS-driven mount/unmount animation) so open/close is never at the mercy of a dropped frame.
-export function MobileNav({ open, onClose }) {
+export function MobileNav({ open, onClose, session, onSignOut }) {
   return (
     <>
       <div
@@ -51,14 +51,28 @@ export function MobileNav({ open, onClose }) {
             {link.label}
           </NavLink>
         ))}
-        <Link
-          to="/auth"
-          onClick={onClose}
-          tabIndex={open ? 0 : -1}
-          className="flex min-h-11 items-center rounded-lg px-3 py-3 text-base font-medium text-ink"
-        >
-          Sign in
-        </Link>
+        {session ? (
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onSignOut?.();
+            }}
+            tabIndex={open ? 0 : -1}
+            className="flex min-h-11 items-center rounded-lg px-3 py-3 text-left text-base font-medium text-ink"
+          >
+            Sign out
+          </button>
+        ) : (
+          <Link
+            to="/auth"
+            onClick={onClose}
+            tabIndex={open ? 0 : -1}
+            className="flex min-h-11 items-center rounded-lg px-3 py-3 text-base font-medium text-ink"
+          >
+            Sign in
+          </Link>
+        )}
         <div className="mt-4">
           <Button to="/report" onClick={onClose} tabIndex={open ? 0 : -1} className="w-full">
             Report a claim

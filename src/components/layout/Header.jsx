@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "../ui/Button";
 import { MobileNav } from "./MobileNav";
+import { useAuthSession } from "../../hooks/useAuthSession";
+import { supabase } from "../../lib/supabaseClient";
 import { NAV_LINKS, SITE_NAME } from "../../lib/constants";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const { session } = useAuthSession();
+  const navigate = useNavigate();
 
   useEffect(() => {
     function onScroll() {
@@ -17,6 +21,11 @@ export function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    navigate("/");
+  }
 
   return (
     <header
@@ -47,9 +56,20 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-4 lg:flex">
-          <Link to="/auth" className="text-sm font-medium text-ink/80 hover:text-signal-teal">
-            Sign in
-          </Link>
+          {session ? (
+            <>
+              <span className="max-w-40 truncate text-sm text-slate" title={session.user.email}>
+                {session.user.email}
+              </span>
+              <button type="button" onClick={handleSignOut} className="text-sm font-medium text-ink/80 hover:text-signal-teal">
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link to="/auth" className="text-sm font-medium text-ink/80 hover:text-signal-teal">
+              Sign in
+            </Link>
+          )}
           <Button to="/report" className="px-4 py-2.5">
             Report a claim
           </Button>
@@ -65,7 +85,7 @@ export function Header() {
         </button>
       </div>
 
-      <MobileNav open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobileNav open={navOpen} onClose={() => setNavOpen(false)} session={session} onSignOut={handleSignOut} />
     </header>
   );
 }

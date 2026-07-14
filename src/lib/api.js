@@ -21,4 +21,18 @@ export const api = {
   insights: () => request("/insights"),
   insight: (slug) => request(`/insights/${slug}`),
   contact: (payload) => request("/contact", { method: "POST", body: JSON.stringify(payload) }),
+  narrateStatus: () => request("/narrate/status"),
+  // Binary response (audio), not JSON — bypasses the shared request() helper.
+  async narrate(text, voice) {
+    const res = await fetch(`${API_BASE_URL}/narrate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Narration failed: ${res.status}`);
+    }
+    return res.blob();
+  },
 };
