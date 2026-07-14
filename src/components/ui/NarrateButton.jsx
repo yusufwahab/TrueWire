@@ -7,10 +7,14 @@ import { DEFAULT_VOICE } from "../../lib/constants";
 // narrated via YarnGPT (Nigerian-accented text-to-speech), reflecting how much misinformation
 // in Nigeria actually spreads by voice, not just text. Renders nothing until the backend
 // confirms YarnGPT is configured, so there's never a button that just errors on click.
-export function NarrateButton({ text, voice = DEFAULT_VOICE, className = "" }) {
+// `autoPlay` starts narration as soon as it's available (used when the question itself was
+// asked by voice, so the answer comes back read aloud without an extra click) — if the browser
+// blocks the autoplay, the button just falls back to its normal "retry" state.
+export function NarrateButton({ text, voice = DEFAULT_VOICE, autoPlay = false, className = "" }) {
   const [available, setAvailable] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | loading | playing | error
   const audioRef = useRef(null);
+  const autoPlayedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,12 +30,7 @@ export function NarrateButton({ text, voice = DEFAULT_VOICE, className = "" }) {
     };
   }, []);
 
-  async function handleClick() {
-    if (status === "playing") {
-      audioRef.current?.pause();
-      setStatus("idle");
-      return;
-    }
+  async function play() {
     setStatus("loading");
     try {
       const blob = await api.narrate(text, voice);
@@ -45,6 +44,23 @@ export function NarrateButton({ text, voice = DEFAULT_VOICE, className = "" }) {
     } catch {
       setStatus("error");
     }
+  }
+
+  useEffect(() => {
+    if (autoPlay && available && !autoPlayedRef.current) {
+      autoPlayedRef.current = true;
+      play();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlay, available]);
+
+  async function handleClick() {
+    if (status === "playing") {
+      audioRef.current?.pause();
+      setStatus("idle");
+      return;
+    }
+    await play();
   }
 
   if (!available) return null;

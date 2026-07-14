@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "../ui/Button";
 import { MobileNav } from "./MobileNav";
+import { AccountMenu } from "./AccountMenu";
 import { useAuthSession } from "../../hooks/useAuthSession";
 import { supabase } from "../../lib/supabaseClient";
 import { NAV_LINKS, SITE_NAME } from "../../lib/constants";
@@ -57,14 +58,7 @@ export function Header() {
 
         <div className="hidden items-center gap-4 lg:flex">
           {session ? (
-            <>
-              <span className="max-w-40 truncate text-sm text-slate" title={session.user.email}>
-                {session.user.email}
-              </span>
-              <button type="button" onClick={handleSignOut} className="text-sm font-medium text-ink/80 hover:text-signal-teal">
-                Sign out
-              </button>
-            </>
+            <AccountMenu session={session} onSignOut={handleSignOut} />
           ) : (
             <Link to="/auth" className="text-sm font-medium text-ink/80 hover:text-signal-teal">
               Sign in

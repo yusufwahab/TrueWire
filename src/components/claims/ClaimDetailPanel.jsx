@@ -2,6 +2,7 @@ import { ExternalLink } from "lucide-react";
 import { VerdictPill } from "../ui/VerdictPill";
 import { Sparkline } from "../ui/Sparkline";
 import { NarrateButton } from "../ui/NarrateButton";
+import { SaveButton } from "../ui/SaveButton";
 import { VERDICTS, DEFAULT_VOICE } from "../../lib/constants";
 import { timeAgo } from "../../lib/format";
 
@@ -11,11 +12,14 @@ export function ClaimDetailPanel({ claim, voice = DEFAULT_VOICE }) {
   return (
     <div className="space-y-8">
       <div>
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <VerdictPill verdict={claim.verdict} confidence={claim.confidence} size="lg" />
-          <span className="font-mono text-xs text-slate">
-            {claim.sourceCount} sources · first reported {timeAgo(claim.firstReportedAt)}
-          </span>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <VerdictPill verdict={claim.verdict} confidence={claim.confidence} size="lg" />
+            <span className="font-mono text-xs text-slate">
+              {claim.sourceCount} sources · first reported {timeAgo(claim.firstReportedAt)}
+            </span>
+          </div>
+          <SaveButton claimId={claim.id} />
         </div>
         <h1 className="font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">{claim.text}</h1>
       </div>

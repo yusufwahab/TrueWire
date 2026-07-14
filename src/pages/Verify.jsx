@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Link2, FileText, ImageIcon } from "lucide-react";
+import { Link2, FileText, ImageIcon, Mic } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "../components/ui/Button";
 import { PulseSkeleton } from "../components/ui/PulseSkeleton";
 import { VerdictPill } from "../components/ui/VerdictPill";
 import { NarrateButton } from "../components/ui/NarrateButton";
+import { SaveButton } from "../components/ui/SaveButton";
 import { useAuthSession } from "../hooks/useAuthSession";
 import { useProfile } from "../hooks/useProfile";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { api } from "../lib/api";
 import { CLAIMS } from "../data/seed";
 import { VOICE_BY_LANGUAGE, DEFAULT_VOICE } from "../lib/constants";
@@ -29,6 +31,7 @@ export function Verify() {
   const [statusStep, setStatusStep] = useState(0);
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [askedByVoice, setAskedByVoice] = useState(false);
   const intervalRef = useRef(null);
   const { session } = useAuthSession();
   const profile = useProfile(session);
@@ -46,17 +49,15 @@ export function Verify() {
     return () => clearInterval(intervalRef.current);
   }, [status]);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const value = tab === "link" ? link : text;
-    if (!value.trim()) return;
+  async function runVerify(value) {
+    if (!value?.trim()) return;
 
     setStatus("loading");
     setErrorMsg("");
     const minDelay = new Promise((resolve) => setTimeout(resolve, 1400));
 
     try {
-      const [data] = await Promise.all([api.verify({ inputType: tab, inputText: text, inputUrl: link }), minDelay]);
+      const [data] = await Promise.all([api.verify({ inputType: tab, inputText: value, inputUrl: link }), minDelay]);
       setResult(data);
       setStatus("result");
     } catch (err) {
@@ -66,16 +67,31 @@ export function Verify() {
     }
   }
 
+  function handleSubmit(e) {
+    e.preventDefault();
+    setAskedByVoice(false);
+    runVerify(tab === "link" ? link : text);
+  }
+
+  const speech = useSpeechRecognition({
+    onResult: (transcript) => {
+      setText(transcript);
+      setAskedByVoice(true);
+      runVerify(transcript);
+    },
+  });
+
   function reset() {
     setStatus("idle");
     setResult(null);
+    setAskedByVoice(false);
   }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-14 sm:px-6 lg:px-8">
       <div className="mb-10 text-center">
         <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">Verify a claim</h1>
-        <p className="mt-2 text-sm text-slate">Paste text, a link, or an image — we'll check it against the archive.</p>
+        <p className="mt-2 text-sm text-slate">Paste text, a link, an image, or just ask out loud — we'll check it against the archive.</p>
       </div>
 
       {status === "idle" && (
@@ -101,14 +117,38 @@ export function Verify() {
           </div>
 
           {tab === "text" && (
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={6}
-              placeholder="Paste the claim, message, or text you want checked…"
-              className="w-full rounded-lg border border-slate/25 bg-paper-raised p-4 text-sm text-ink outline-none focus:border-signal-teal"
-            />
+            <div className="relative">
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={6}
+                placeholder={speech.supported ? "Paste the claim, message, or text you want checked… or tap the mic to speak it." : "Paste the claim, message, or text you want checked…"}
+                className="w-full rounded-lg border border-slate/25 bg-paper-raised p-4 pr-14 text-sm text-ink outline-none focus:border-signal-teal"
+              />
+              {speech.supported && (
+                <button
+                  type="button"
+                  onClick={() => (speech.listening ? speech.stop() : speech.start())}
+                  aria-label={speech.listening ? "Stop listening" : "Ask by voice"}
+                  className={clsx(
+                    "absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full border transition-colors",
+                    speech.listening
+                      ? "border-signal-teal bg-signal-teal text-white"
+                      : "border-slate/25 text-slate hover:border-signal-teal hover:text-signal-teal",
+                  )}
+                >
+                  <Mic size={16} />
+                </button>
+              )}
+            </div>
           )}
+          {tab === "text" && speech.listening && (
+            <p className="mt-2 flex items-center gap-1.5 font-mono text-xs text-slate">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-pulse-amber" aria-hidden="true" />
+              Listening…
+            </p>
+          )}
+          {tab === "text" && speech.error && <p className="mt-2 text-xs text-alert-coral">{speech.error}</p>}
           {tab === "link" && (
             <input
               type="url"
@@ -149,13 +189,14 @@ export function Verify() {
 
       {status === "result" && result && (
         <div className="space-y-6">
-          <div className="flex justify-center">
+          <div className="flex items-center justify-center gap-3">
             <VerdictPill verdict={result.verdict} confidence={result.confidence ?? undefined} size="lg" />
+            {result.claim?.id && <SaveButton claimId={result.claim.id} />}
           </div>
           <div className="rounded-xl border border-slate/15 bg-paper-raised p-6">
             <div className="mb-1 flex items-center justify-between gap-3">
               <p className="text-xs font-medium uppercase tracking-wide text-slate">Why we think this</p>
-              <NarrateButton text={result.explanation} voice={voice} />
+              <NarrateButton text={result.explanation} voice={voice} autoPlay={askedByVoice} />
             </div>
             <p className="text-base leading-relaxed text-ink/90">{result.explanation}</p>
           </div>

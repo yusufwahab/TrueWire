@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
+import { RequireAuth } from "./components/auth/RequireAuth";
 import { Home } from "./pages/Home";
 import { Trending } from "./pages/Trending";
 import { ClaimDetail } from "./pages/ClaimDetail";
@@ -13,6 +14,11 @@ import { InsightArticle } from "./pages/InsightArticle";
 import { Contact } from "./pages/Contact";
 import { Auth } from "./pages/Auth";
 import { Legal } from "./pages/Legal";
+import { Dashboard } from "./pages/Dashboard";
+import { Saved } from "./pages/Saved";
+import { MyReports } from "./pages/MyReports";
+import { Notifications } from "./pages/Notifications";
+import { Settings } from "./pages/Settings";
 import { NotFound } from "./pages/NotFound";
 
 export default function App() {
@@ -34,6 +40,15 @@ export default function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/privacy" element={<Legal page="privacy" />} />
           <Route path="/terms" element={<Legal page="terms" />} />
+
+          <Route element={<RequireAuth />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/saved" element={<Saved />} />
+            <Route path="/my-reports" element={<MyReports />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -8,6 +8,7 @@ import { imagesRouter } from "./routes/images.js";
 import { insightsRouter } from "./routes/insights.js";
 import { contactRouter } from "./routes/contact.js";
 import { narrateRouter } from "./routes/narrate.js";
+import { accountRouter } from "./routes/account.js";
 import { isSupabaseConfigured } from "./lib/supabaseAdmin.js";
 import { isClaudeConfigured } from "./lib/claude.js";
 import { isYarnGptConfigured } from "./lib/narration.js";
@@ -29,6 +30,7 @@ app.use("/api/images", imagesRouter);
 app.use("/api/insights", insightsRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/narrate", narrateRouter);
+app.use("/api/account", accountRouter);
 
 app.listen(PORT, () => {
   console.log(`Truewire API listening on http://localhost:${PORT}`);

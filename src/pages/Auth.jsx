@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import clsx from "clsx";
 import { Button } from "../components/ui/Button";
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
@@ -9,6 +9,8 @@ const LANGUAGES = ["English", "Pidgin", "Hausa", "Yoruba", "Igbo"];
 
 export function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("return_to") || "/dashboard";
   const [mode, setMode] = useState("signin"); // signin | signup
   const [step, setStep] = useState("form"); // form | check-email | onboarding-categories | onboarding-language | done
   const [email, setEmail] = useState("");
@@ -18,23 +20,22 @@ export function Auth() {
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Single source of truth for post-sign-in routing, covering both email and Google OAuth
-  // (the OAuth redirect back to this page fires SIGNED_IN here rather than resolving from a
-  // direct call, which is what the old code missed). A missing profiles row means onboarding
-  // hasn't been completed yet, regardless of how the user signed in.
+  // Single source of truth for post-sign-in routing. A missing profiles row means onboarding
+  // hasn't been completed yet. (Google OAuth is on hold for now — this listener still works
+  // unchanged if it's added back later, since it reacts to any SIGNED_IN event.)
   useEffect(() => {
     if (!isSupabaseConfigured) return undefined;
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event !== "SIGNED_IN" || !session?.user) return;
       const { data: profile } = await supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle();
       if (profile) {
-        navigate("/trending");
+        navigate(returnTo);
       } else {
         setStep("onboarding-categories");
       }
     });
     return () => listener.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, returnTo]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -59,14 +60,6 @@ export function Auth() {
     } finally {
       setStatus("idle");
     }
-  }
-
-  async function handleGoogle() {
-    if (!isSupabaseConfigured) {
-      setErrorMsg("Sign-in isn't connected yet — add your Supabase keys to enable it.");
-      return;
-    }
-    await supabase.auth.signInWithOAuth({ provider: "google" });
   }
 
   function toggleCategory(cat) {
@@ -140,14 +133,6 @@ export function Auth() {
                 {mode === "signup" ? "Create account" : "Sign in"}
               </Button>
             </form>
-
-            <button
-              type="button"
-              onClick={handleGoogle}
-              className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-slate/25 text-sm font-medium text-ink hover:border-signal-teal"
-            >
-              Continue with Google
-            </button>
 
             <p className="mt-6 text-center text-sm text-slate">
               {mode === "signup" ? "Already have an account?" : "New here?"}{" "}
@@ -246,8 +231,8 @@ export function Auth() {
           <div className="text-center">
             <h1 className="font-display text-2xl font-semibold text-ink">You're set up.</h1>
             <p className="mt-2 text-sm text-slate">Your trending feed and ticker are now tuned to your preferences.</p>
-            <Button to="/trending" className="mt-6 w-full">
-              Go to Trending
+            <Button to={returnTo} className="mt-6 w-full">
+              {returnTo === "/dashboard" ? "Go to Dashboard" : "Continue"}
             </Button>
           </div>
         )}

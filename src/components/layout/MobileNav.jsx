@@ -4,6 +4,14 @@ import { X } from "lucide-react";
 import { NAV_LINKS } from "../../lib/constants";
 import { Button } from "../ui/Button";
 
+const ACCOUNT_LINKS = [
+  { label: "Dashboard", to: "/dashboard" },
+  { label: "Saved", to: "/saved" },
+  { label: "My reports", to: "/my-reports" },
+  { label: "Notifications", to: "/notifications" },
+  { label: "Settings", to: "/settings" },
+];
+
 // Slide-in panel from the right, offset below the header/ticker so the live ticker stays
 // visible while the nav is open. Always mounted with a CSS transform transition (rather than a
 // JS-driven mount/unmount animation) so open/close is never at the mercy of a dropped frame.
@@ -52,17 +60,35 @@ export function MobileNav({ open, onClose, session, onSignOut }) {
           </NavLink>
         ))}
         {session ? (
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onSignOut?.();
-            }}
-            tabIndex={open ? 0 : -1}
-            className="flex min-h-11 items-center rounded-lg px-3 py-3 text-left text-base font-medium text-ink"
-          >
-            Sign out
-          </button>
+          <>
+            <div className="my-2 border-t border-slate/15" aria-hidden="true" />
+            {ACCOUNT_LINKS.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                onClick={onClose}
+                tabIndex={open ? 0 : -1}
+                className={({ isActive }) =>
+                  `flex min-h-11 items-center rounded-lg px-3 py-3 text-base font-medium ${
+                    isActive ? "bg-signal-teal/8 text-signal-teal" : "text-ink"
+                  }`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onSignOut?.();
+              }}
+              tabIndex={open ? 0 : -1}
+              className="flex min-h-11 items-center rounded-lg px-3 py-3 text-left text-base font-medium text-ink"
+            >
+              Sign out
+            </button>
+          </>
         ) : (
           <Link
             to="/auth"

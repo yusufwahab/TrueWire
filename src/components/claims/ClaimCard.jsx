@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { Card } from "../ui/Card";
 import { VerdictPill } from "../ui/VerdictPill";
 import { Sparkline } from "../ui/Sparkline";
+import { SaveButton } from "../ui/SaveButton";
 import { timeAgo } from "../../lib/format";
 
 export function ClaimCard({ claim, dense = false, flash = false }) {
@@ -29,6 +30,7 @@ export function ClaimCard({ claim, dense = false, flash = false }) {
       <div className="flex shrink-0 items-center gap-3">
         <Sparkline series={claim.reportSeries} />
         {dense && <span className="whitespace-nowrap font-mono text-xs text-slate">{timeAgo(claim.firstReportedAt)}</span>}
+        <SaveButton claimId={claim.id} />
       </div>
     </Card>
   );

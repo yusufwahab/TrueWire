@@ -3,12 +3,14 @@ import { supabaseAdmin, isSupabaseConfigured } from "../lib/supabaseAdmin.js";
 import { mapDbClaims } from "../lib/mapClaim.js";
 import { findBestMatch } from "../lib/matching.js";
 import { analyzeUnmatchedClaim } from "../lib/claude.js";
+import { getUserIdFromRequest } from "../lib/authUser.js";
 import { CLAIMS } from "../../src/data/seed.js";
 
 export const reportRouter = Router();
 
 reportRouter.post("/", async (req, res) => {
   const { content = "", type = "text", category = null, contactEmail = null } = req.body || {};
+  const userId = await getUserIdFromRequest(req);
 
   if (!content.trim()) {
     return res.status(400).json({ error: "Paste text, a link, or describe what you saw." });
@@ -42,6 +44,7 @@ reportRouter.post("/", async (req, res) => {
       contact_email: contactEmail,
       matched_claim_id: match?.claim.id ?? null,
       status: "queued",
+      user_id: userId,
     });
     if (error) console.error("[report] insert failed:", error.message);
     saved = !error;

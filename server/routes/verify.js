@@ -3,6 +3,7 @@ import { supabaseAdmin, isSupabaseConfigured } from "../lib/supabaseAdmin.js";
 import { mapDbClaims } from "../lib/mapClaim.js";
 import { findBestMatch } from "../lib/matching.js";
 import { analyzeUnmatchedClaim } from "../lib/claude.js";
+import { getUserIdFromRequest } from "../lib/authUser.js";
 import { CLAIMS } from "../../src/data/seed.js";
 
 export const verifyRouter = Router();
@@ -10,6 +11,7 @@ export const verifyRouter = Router();
 verifyRouter.post("/", async (req, res) => {
   const { inputType = "text", inputText = "", inputUrl = "" } = req.body || {};
   const text = inputType === "link" ? inputUrl : inputText;
+  const userId = await getUserIdFromRequest(req);
 
   if (!text || !text.trim()) {
     return res.status(400).json({ error: "Paste some text or a link to verify." });
@@ -31,7 +33,7 @@ verifyRouter.post("/", async (req, res) => {
   if (isSupabaseConfigured) {
     supabaseAdmin
       .from("verify_submissions")
-      .insert({ input_text: text, input_type: inputType, matched_claim_id: match?.claim.id ?? null })
+      .insert({ input_text: text, input_type: inputType, matched_claim_id: match?.claim.id ?? null, user_id: userId })
       .then(({ error }) => {
         if (error) console.error("[verify] submission log failed:", error.message);
       });
