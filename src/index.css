@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #101b17;
+  --color-paper: #f2f4f1;
+  --color-paper-raised: #ffffff;
+  --color-signal-teal: #177a6d;
+  --color-alert-coral: #c24a32;
+  --color-pulse-amber: #d99a2b;
+  --color-slate: #4a5a57;
+
+  --font-display: "Fraunces", ui-serif, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    /* The off-canvas mobile nav panel and ticker marquee use fixed/transformed elements that
+       are wider than the viewport by design; overflow-x here keeps them from ever producing a
+       horizontal scrollbar on the page itself. */
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .editorial-photo {
+    filter: saturate(0.92) contrast(1.05);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  @keyframes pulse-sweep {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  .animate-pulse-sweep {
+    animation: pulse-sweep 1.6s ease-in-out infinite;
+  }
+
+  @keyframes ticker-flash {
+    0% {
+      background-color: color-mix(in srgb, var(--color-pulse-amber) 8%, transparent);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+  .animate-ticker-flash {
+    animation: ticker-flash 2.5s ease-out forwards;
+  }
+
+  @keyframes draw-signal {
+    from {
+      stroke-dashoffset: 1000;
+      opacity: 0;
+    }
+    to {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+  }
+  .animate-draw-signal {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw-signal 0.6s ease-out forwards;
+  }
+
+  @keyframes signal-dot-move {
+    from {
+      offset-distance: 0%;
+    }
+    to {
+      offset-distance: 100%;
+    }
+  }
+  .animate-signal-dot {
+    offset-distance: 0%;
+    animation: signal-dot-move 5s linear infinite;
+    animation-delay: 0.6s;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  .animate-marquee {
+    animation: marquee 28s linear infinite;
+  }
+}
