@@ -18,8 +18,13 @@ import { runIngestionCycle, isIngestionConfigured } from "./lib/ingestClaims.js"
 const app = express();
 const PORT = process.env.PORT || 8787;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
+// CORS_ORIGIN may hold multiple comma-separated origins (e.g. local dev + the deployed frontend)
+// — the cors package needs an array to match against, since a raw comma-joined string gets
+// echoed back verbatim as one invalid Access-Control-Allow-Origin value and every browser
+// rejects it outright.
+const allowedOrigins = CORS_ORIGIN.split(",").map((origin) => origin.trim());
 
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.get("/api/health", (req, res) =>
