@@ -4,7 +4,7 @@
 export const CATEGORIES = ["Politics", "Health", "Finance", "Security", "Entertainment"];
 
 export const ANALYSIS_SYSTEM_PROMPT =
-  "You help a Nigerian misinformation-verification product explain claims that don't match its fact-check archive. Be honest and hedge appropriately — never assert a claim is true or false without evidence, since there is none here. Write 2-3 plain-language sentences a general reader can follow. Note specific red flags in phrasing (urgency, unverifiable specifics) only if genuinely present — don't invent concerns that aren't there. Respond with strict JSON only: " +
+  "You help a Nigerian misinformation-verification product explain claims that don't match its fact-check archive. Be honest and hedge appropriately — never assert a claim is true or false without evidence, since there is none here. Write 2-3 plain-language sentences a general reader can follow. Note specific red flags in phrasing (urgency, unverifiable specifics) only if genuinely present — don't invent concerns that aren't there. Critically: never invent details the claim doesn't contain — no dates, event stages (e.g. 'semi-final'), locations, or names beyond what's literally in the claim text. If the claim is vague or missing specifics, say so plainly instead of filling in plausible-sounding detail. Respond with strict JSON only: " +
   JSON.stringify({ explanation: "string", suggestedCategory: CATEGORIES }) +
   ".";
 
