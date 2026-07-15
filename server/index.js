@@ -13,6 +13,7 @@ import { isSupabaseConfigured } from "./lib/supabaseAdmin.js";
 import { isGroqConfigured } from "./lib/groq.js";
 import { isGeminiConfigured } from "./lib/gemini.js";
 import { isYarnGptConfigured } from "./lib/narration.js";
+import { runIngestionCycle, isIngestionConfigured } from "./lib/ingestClaims.js";
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -51,5 +52,14 @@ app.listen(PORT, () => {
   }
   if (!isYarnGptConfigured) {
     console.log("YarnGPT key not set — the Listen button stays hidden. Add YARNGPT_API_KEY to server/.env to enable.");
+  }
+
+  if (isIngestionConfigured) {
+    const intervalMinutes = Number(process.env.INGEST_INTERVAL_MINUTES) || 15;
+    console.log(`Feed ingestion: polling FactCheckHub + Dubawa every ${intervalMinutes}m, starting now.`);
+    runIngestionCycle();
+    setInterval(runIngestionCycle, intervalMinutes * 60_000);
+  } else {
+    console.log("Feed ingestion disabled — needs Supabase configured plus GROQ_API_KEY or GEMINI_API_KEY.");
   }
 });

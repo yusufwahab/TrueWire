@@ -103,6 +103,18 @@ create table if not exists notifications (
 alter table verify_submissions add column if not exists user_id uuid references auth.users (id) on delete set null;
 alter table user_reports add column if not exists user_id uuid references auth.users (id) on delete set null;
 
+-- Tracks which RSS items from server/lib/feeds.js have already been processed, so the ingestion
+-- poller doesn't re-evaluate the same fact-check article every cycle (feeds keep repeating
+-- recent items until they scroll off). claim_id is null for items judged not Nigeria-relevant.
+create table if not exists ingested_feed_items (
+  id uuid primary key default gen_random_uuid(),
+  source_name text not null,
+  item_guid text not null,
+  claim_id uuid references claims (id) on delete set null,
+  created_at timestamptz not null default now(),
+  unique (source_name, item_guid)
+);
+
 -- Fires whenever a new claim is inserted (by the ingestion pipeline, or the seed data), and
 -- notifies every profile whose saved categories include it — this is what makes /notifications
 -- a genuine "pushed to the user" feed rather than something the app fakes on read.
@@ -137,6 +149,7 @@ alter table profiles enable row level security;
 alter table contact_messages enable row level security;
 alter table saved_claims enable row level security;
 alter table notifications enable row level security;
+alter table ingested_feed_items enable row level security;
 
 drop policy if exists "Public read sources" on sources;
 create policy "Public read sources" on sources for select using (true);
