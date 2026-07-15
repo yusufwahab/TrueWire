@@ -6,7 +6,7 @@ export function VerdictPill({ verdict, confidence, size = "md" }) {
   return (
     <span
       className={clsx(
-        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1 font-medium",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1 font-bold",
         size === "md" ? "text-xs" : "text-sm",
         v.className,
       )}
