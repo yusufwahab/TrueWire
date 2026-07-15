@@ -2,7 +2,7 @@ import { Router } from "express";
 import { supabaseAdmin, isSupabaseConfigured } from "../lib/supabaseAdmin.js";
 import { mapDbClaims } from "../lib/mapClaim.js";
 import { findBestMatch } from "../lib/matching.js";
-import { analyzeUnmatchedClaim } from "../lib/claude.js";
+import { analyzeUnmatchedClaim } from "../lib/claimAnalysis.js";
 import { getUserIdFromRequest } from "../lib/authUser.js";
 import { CLAIMS } from "../../src/data/seed.js";
 
