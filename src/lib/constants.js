@@ -52,6 +52,12 @@ export const VERDICTS = {
     color: "var(--color-slate)",
     className: "text-slate border-slate/30 bg-slate/8",
   },
+  general_knowledge: {
+    label: "General knowledge",
+    description: "Answered from general knowledge — not cross-checked against our fact-check archive",
+    color: "var(--color-pulse-amber)",
+    className: "text-pulse-amber border-pulse-amber/30 bg-pulse-amber/8",
+  },
 };
 
 export const NEWS_SOURCES = [

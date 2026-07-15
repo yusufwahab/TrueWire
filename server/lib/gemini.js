@@ -1,4 +1,4 @@
-import { CATEGORIES, ANALYSIS_SYSTEM_PROMPT, buildAnalysisPrompt, parseAnalysisResponse } from "./analysisPrompt.js";
+import { CATEGORIES, ANSWER_TYPES, ANALYSIS_SYSTEM_PROMPT, buildAnalysisPrompt, parseAnalysisResponse } from "./analysisPrompt.js";
 
 const API_KEY = process.env.GEMINI_API_KEY;
 // Google has been retiring dated Gemini model names faster than announced (2.0-flash in
@@ -23,10 +23,11 @@ export async function analyzeWithGemini(text) {
           responseSchema: {
             type: "object",
             properties: {
+              answerType: { type: "string", enum: ANSWER_TYPES },
               explanation: { type: "string" },
               suggestedCategory: { type: "string", enum: CATEGORIES },
             },
-            required: ["explanation", "suggestedCategory"],
+            required: ["answerType", "explanation", "suggestedCategory"],
           },
         },
       }),

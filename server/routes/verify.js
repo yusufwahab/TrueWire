@@ -42,7 +42,7 @@ verifyRouter.post("/", async (req, res) => {
   if (!match) {
     const analysis = await analyzeUnmatchedClaim(text);
     return res.json({
-      verdict: "unconfirmed",
+      verdict: analysis?.answerType === "general_knowledge" ? "general_knowledge" : "unconfirmed",
       confidence: null,
       matchScore: 0,
       claim: null,

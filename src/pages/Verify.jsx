@@ -12,7 +12,7 @@ import { useProfile } from "../hooks/useProfile";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { api } from "../lib/api";
 import { CLAIMS } from "../data/seed";
-import { VOICE_BY_LANGUAGE, DEFAULT_VOICE } from "../lib/constants";
+import { VOICE_BY_LANGUAGE, DEFAULT_VOICE, VERDICTS } from "../lib/constants";
 
 const TABS = [
   { key: "text", label: "Paste text", icon: FileText },
@@ -199,6 +199,7 @@ export function Verify() {
               <NarrateButton text={result.explanation} voice={voice} autoPlay={askedByVoice} />
             </div>
             <p className="text-base leading-relaxed text-ink/90">{result.explanation}</p>
+            <p className="mt-3 text-xs text-slate">{(VERDICTS[result.verdict] || VERDICTS.unconfirmed).description}.</p>
           </div>
 
           {result.sources?.length > 0 && (
