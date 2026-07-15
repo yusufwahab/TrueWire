@@ -14,6 +14,7 @@ import { isGroqConfigured } from "./lib/groq.js";
 import { isGeminiConfigured } from "./lib/gemini.js";
 import { isYarnGptConfigured } from "./lib/narration.js";
 import { runIngestionCycle, isIngestionConfigured } from "./lib/ingestClaims.js";
+import { FEED_SOURCES } from "./lib/feeds.js";
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -61,7 +62,7 @@ app.listen(PORT, () => {
 
   if (isIngestionConfigured) {
     const intervalMinutes = Number(process.env.INGEST_INTERVAL_MINUTES) || 15;
-    console.log(`Feed ingestion: polling FactCheckHub + Dubawa every ${intervalMinutes}m, starting now.`);
+    console.log(`Feed ingestion: polling ${FEED_SOURCES.length} sources (${FEED_SOURCES.map((s) => s.name).join(", ")}) every ${intervalMinutes}m, starting now.`);
     runIngestionCycle();
     setInterval(runIngestionCycle, intervalMinutes * 60_000);
   } else {

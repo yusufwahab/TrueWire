@@ -5,7 +5,14 @@ import { FEED_SOURCES } from "./feeds.js";
 import { fetchFeedItems } from "./rssFetcher.js";
 import { extractClaimFromItem } from "./claimExtraction.js";
 
-const MAX_ITEMS_PER_SOURCE = Number(process.env.INGEST_MAX_ITEMS_PER_SOURCE) || 5;
+// Lowered from 5 once the source list grew from 2 to 9 — at 5/source that's up to 45 extraction
+// calls per cycle, which reliably burst past Groq's per-minute token limit and Gemini's free
+// daily quota in production. 2/source caps a cycle at 18, and the delay below spreads those out
+// instead of firing them back-to-back.
+const MAX_ITEMS_PER_SOURCE = Number(process.env.INGEST_MAX_ITEMS_PER_SOURCE) || 2;
+const EXTRACTION_DELAY_MS = 4000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const isIngestionConfigured = isSupabaseConfigured && (isGroqConfigured || isGeminiConfigured);
 
@@ -114,6 +121,9 @@ export async function runIngestionCycle() {
         console.error(`[ingestClaims] failed to process "${item.title}" from ${source.name}:`, err.message);
         await markProcessed(source.name, item.guid);
       }
+      // Spread extraction calls out instead of firing them back-to-back — otherwise a handful of
+      // sources with new items in the same cycle can burst past Groq's per-minute token limit.
+      await sleep(EXTRACTION_DELAY_MS);
     }
   }
 
