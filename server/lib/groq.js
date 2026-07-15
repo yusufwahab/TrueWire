@@ -19,7 +19,7 @@ export async function analyzeWithGroq(text) {
       ],
       response_format: { type: "json_object" },
       temperature: 0.3,
-      max_tokens: 400,
+      max_tokens: 700,
     }),
   });
 
