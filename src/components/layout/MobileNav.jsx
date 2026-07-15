@@ -19,16 +19,18 @@ export function MobileNav({ open, onClose, session, onSignOut }) {
   return (
     <>
       <div
+        style={{ top: "var(--chrome-height, 6.5rem)" }}
         className={clsx(
-          "fixed inset-x-0 bottom-0 top-[6.5rem] z-40 bg-ink/40 transition-opacity duration-200 lg:hidden",
+          "fixed inset-x-0 bottom-0 z-40 bg-ink/40 transition-opacity duration-200 lg:hidden",
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
         )}
         onClick={onClose}
         aria-hidden="true"
       />
       <div
+        style={{ top: "var(--chrome-height, 6.5rem)", height: "calc(100% - var(--chrome-height, 6.5rem))" }}
         className={clsx(
-          "fixed right-0 top-[6.5rem] z-40 flex h-[calc(100%-6.5rem)] w-[80%] max-w-xs flex-col gap-1 overflow-y-auto bg-paper-raised p-6 shadow-xl transition-transform duration-250 ease-out lg:hidden",
+          "fixed right-0 z-40 flex w-[80%] max-w-xs flex-col gap-1 overflow-y-auto bg-paper-raised p-6 shadow-xl transition-transform duration-250 ease-out lg:hidden",
           open ? "translate-x-0" : "translate-x-full",
         )}
         aria-hidden={!open}

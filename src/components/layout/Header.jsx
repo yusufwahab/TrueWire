@@ -29,12 +29,13 @@ export function Header() {
   }
 
   return (
-    <header
-      className={clsx(
-        "sticky top-0 z-30 bg-paper/95 backdrop-blur transition-all duration-200",
-        scrolled ? "border-b border-slate/15 py-2" : "py-4",
-      )}
-    >
+    <>
+      <header
+        className={clsx(
+          "sticky top-0 z-30 bg-paper/95 backdrop-blur transition-all duration-200",
+          scrolled ? "border-b border-slate/15 py-2" : "py-4",
+        )}
+      >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex shrink-0 items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-pulse-amber" aria-hidden="true" />
@@ -78,8 +79,12 @@ export function Header() {
           <Menu size={22} />
         </button>
       </div>
+      </header>
 
+      {/* Rendered as a sibling, not a header child — `backdrop-blur` on <header> makes it a
+          containing block for `position: fixed` descendants, which trapped this panel inside
+          the header's own small box instead of the viewport. */}
       <MobileNav open={navOpen} onClose={() => setNavOpen(false)} session={session} onSignOut={handleSignOut} />
-    </header>
+    </>
   );
 }
