@@ -21,13 +21,13 @@ function slugify(text) {
   return `${base || "claim"}-${suffix}`;
 }
 
-async function getOrCreateSourceId(sourceName) {
+async function getOrCreateSourceId(sourceName, sourceType) {
   const { data: existing } = await supabaseAdmin.from("sources").select("id").eq("name", sourceName).maybeSingle();
   if (existing) return existing.id;
 
   const { data: created, error } = await supabaseAdmin
     .from("sources")
-    .insert({ name: sourceName, type: "factcheck" })
+    .insert({ name: sourceName, type: sourceType })
     .select("id")
     .single();
   if (error) throw error;
@@ -44,7 +44,7 @@ async function markProcessed(sourceName, guid, claimId = null) {
   if (error) console.error(`[ingestClaims] failed to mark ${sourceName}/${guid} processed:`, error.message);
 }
 
-async function createClaimFromExtraction(item, sourceName, extraction) {
+async function createClaimFromExtraction(item, sourceName, sourceType, extraction) {
   const { data: claim, error: claimError } = await supabaseAdmin
     .from("claims")
     .insert({
@@ -61,7 +61,7 @@ async function createClaimFromExtraction(item, sourceName, extraction) {
     .single();
   if (claimError) throw claimError;
 
-  const sourceId = await getOrCreateSourceId(sourceName);
+  const sourceId = await getOrCreateSourceId(sourceName, sourceType);
 
   if (extraction.verdict !== "unconfirmed") {
     const { error: sourceLinkError } = await supabaseAdmin.from("claim_sources").insert({
@@ -107,7 +107,7 @@ export async function runIngestionCycle() {
           totalSkipped += 1;
           continue;
         }
-        const claimId = await createClaimFromExtraction(item, source.name, extraction);
+        const claimId = await createClaimFromExtraction(item, source.name, source.type, extraction);
         await markProcessed(source.name, item.guid, claimId);
         totalCreated += 1;
       } catch (err) {

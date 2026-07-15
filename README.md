@@ -12,7 +12,7 @@ Real-time misinformation detection for Nigeria. Paste a claim, get a verdict —
 
 ## The archive is alive
 
-Every 15 minutes, the backend polls FactCheckHub and Dubawa's public feeds, runs new articles through an LLM to extract the claim + verdict + category, and writes genuinely new entries straight into the live archive — deduplicated so nothing's reprocessed twice. No manual curation, no static seed data pretending to be current.
+Every 15 minutes, the backend polls 9 live RSS feeds — dedicated fact-checkers (FactCheckHub, Dubawa, Africa Check, ICIR, CJID, RoundCheck) and raw newsrooms (Arise News, Daily Post, TVC News) — runs new articles through an LLM to extract the claim + verdict + category, and writes genuinely new entries straight into the live archive, deduplicated so nothing's reprocessed twice. A checkworthiness filter keeps routine news (announcements, court updates, event write-ups) out of the archive even when it comes from a non-fact-checking source. Every candidate feed was checked live before being wired in — anything broken, stale, or blocked gets documented and skipped, never guessed at. No manual curation, no static seed data pretending to be current.
 
 ## Stack
 

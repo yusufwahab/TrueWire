@@ -7,7 +7,7 @@ import { isGeminiConfigured } from "./gemini.js";
 const CATEGORIES = ["Politics", "Health", "Finance", "Security", "Entertainment"];
 
 const EXTRACTION_SYSTEM_PROMPT =
-  "You process a fact-check article from a Nigerian fact-checking organization and extract structured data for a misinformation-tracking database. Respond with strict JSON only: " +
+  "You process an article from a Nigerian fact-checking organization or news outlet and extract structured data for a misinformation-tracking database. Not every article is usable — some sources here are plain news wire, not fact-checkers. Respond with strict JSON only: " +
   JSON.stringify({
     isNigeriaRelevant: "boolean",
     claimText: "string",
@@ -15,7 +15,7 @@ const EXTRACTION_SYSTEM_PROMPT =
     explanation: "string",
     category: CATEGORIES,
   }) +
-  ". Rules: isNigeriaRelevant is true only if the claim concerns Nigeria, Nigerian people/institutions/events — claims about other countries or written in a language other than English are not relevant. claimText restates what's being claimed as a NEUTRAL statement (not the verdict) — e.g. 'Video claims X happened', never 'X did not happen'. verdict is 'disputed' if the fact-check found the claim false or misleading, 'verified' if confirmed true, 'unconfirmed' if the fact-check itself reached no clear conclusion. explanation is 2-3 plain sentences summarizing why, grounded only in the summary given — don't invent details.";
+  ". Rules: isNigeriaRelevant is true only if ALL of these hold — (1) the article concerns Nigeria, Nigerian people/institutions/events, written in English, AND (2) the article is actually examining a specific claim, rumor, or contested assertion circulating publicly — not just routine news reporting (a government announcement, a policy update, an ordinary event write-up) with nothing in dispute. Ordinary news with no claim being checked is NOT relevant, even if newsworthy. claimText restates what's being claimed as a NEUTRAL statement (not the verdict) — e.g. 'Video claims X happened', never 'X did not happen'. verdict is 'disputed' if the article shows the claim is false or misleading, 'verified' if confirmed true, 'unconfirmed' if the article itself reaches no clear conclusion. explanation is 2-3 plain sentences summarizing why, grounded only in the summary given — don't invent details.";
 
 function buildExtractionPrompt({ title, snippet, sourceName }) {
   return `Source: ${sourceName}\nHeadline: ${title}\nSummary: ${snippet || "(no summary provided)"}\n\nExtract the structured claim data as instructed.`;

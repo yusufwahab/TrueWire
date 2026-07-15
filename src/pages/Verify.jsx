@@ -77,7 +77,10 @@ export function Verify() {
     onResult: (transcript) => {
       setText(transcript);
       setAskedByVoice(true);
-      runVerify(transcript);
+      // Give the user a beat to see their own transcribed text land in the textarea before the
+      // view switches to the loading skeleton — setting both in the same tick would batch away
+      // that intermediate render entirely.
+      setTimeout(() => runVerify(transcript), 600);
     },
   });
 
